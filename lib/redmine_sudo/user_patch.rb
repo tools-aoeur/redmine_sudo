@@ -13,7 +13,7 @@ class User
   end
 
   def update_admin!(value)
-    User.where(:id => self.id).update_all(:admin => value)
-    User.where(:id => self.id).update_all(:updated_on => Time.now)
+    User.where(id: self.id).update_all(admin: value)
+    User.where(id: self.id).update_all(updated_on: Time.now)
   end
 end

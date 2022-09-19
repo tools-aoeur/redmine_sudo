@@ -1,19 +1,19 @@
-require_dependency 'project' #see: http://www.redmine.org/issues/11035
-require_dependency 'principal'
-require_dependency 'user'
+if Rails::VERSION::MAJOR < 6
+  require_dependency 'project' # see: http://www.redmine.org/issues/11035
+  require_dependency 'principal'
+  require_dependency 'user'
+end
 
 class User
   before_save :update_sudoer
 
   def update_sudoer
-    if new_record? || admin? || admin_changed?
-      self.sudoer = self.admin
-    end
+    self.sudoer = admin if new_record? || admin? || admin_changed?
     true
   end
 
   def update_admin!(value)
-    User.where(id: self.id).update_all(admin: value)
-    User.where(id: self.id).update_all(updated_on: Time.now)
+    User.where(id: id).update_all(admin: value)
+    User.where(id: id).update_all(updated_on: Time.now)
   end
 end

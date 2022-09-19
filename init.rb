@@ -5,7 +5,7 @@ require_relative 'lib/redmine_sudo/hooks'
 # Patches to existing classes/modules
 klass = defined?(ActiveSupport::Reloader) ? ActiveSupport::Reloader : ActionDispatch::Callbacks
 klass.to_prepare do
-  require_dependency 'redmine_sudo/user_patch'
+  require_relative 'lib/redmine_sudo/user_patch'
 end
 
 # Plugin generic informations

@@ -7,7 +7,10 @@ env:
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   test:
@@ -82,7 +85,7 @@ jobs:
       - name: Checkout dependencies - Base RSpec plugin
         uses: actions/checkout@v2
         with:
-          repository: jbbarth/redmine_base_rspec
+          repository: tools-aoeur/redmine_base_rspec
           path: redmine/plugins/redmine_base_rspec
 
       - name: Prepare Redmine source
@@ -115,14 +118,8 @@ jobs:
       - name: Checkout dependencies - Base Deface plugin
         uses: actions/checkout@v2
         with:
-          repository: jbbarth/redmine_base_deface
+          repository: tools-aoeur/redmine_base_deface
           path: redmine/plugins/redmine_base_deface
-
-      - name: Checkout dependencies - Base StimulusJS plugin
-        uses: actions/checkout@v2
-        with:
-          repository: nanego/redmine_base_stimulusjs
-          path: redmine/plugins/redmine_base_stimulusjs
 
       - name: Checkout plugin
         uses: actions/checkout@v2
@@ -139,11 +136,11 @@ jobs:
           # cp -i plugins/*/spec/fixtures/*yml test/fixtures/
           bundle exec rails db:fixtures:load
 
-      - name: Run core tests
-        env:
-          RAILS_ENV: test
-        working-directory: redmine
-        run: bundle exec rails test
+      # - name: Run core tests
+      #   env:
+      #     RAILS_ENV: test
+      #   working-directory: redmine
+      #   run: bundle exec rails test
 
       - name: Run plugin tests
         env:

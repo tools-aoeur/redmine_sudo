@@ -2,12 +2,6 @@ Rails.autoloaders.main.ignore("#{__dir__}/lib") if Rails::VERSION::MAJOR >= 6
 
 require_relative 'lib/redmine_sudo/hooks'
 
-# Patches to existing classes/modules
-klass = defined?(ActiveSupport::Reloader) ? ActiveSupport::Reloader : ActionDispatch::Callbacks
-klass.to_prepare do
-  require_relative 'lib/redmine_sudo/user_patch'
-end
-
 # Plugin generic informations
 Redmine::Plugin.register :redmine_sudo do
   name 'Redmine Sudo plugin'
@@ -29,4 +23,17 @@ Redmine::Plugin.register :redmine_sudo do
                         #main-menu li a:hover { background-color:#8D0A02; }\n
                         @media all and (max-width: 899px) { #header{ background-color: #dd0037 !important; }" },
            partial: 'settings/redmine_sudo_settings'
+end
+
+# Patches to existing classes/modules
+if Rails::VERSION::MAJOR < 6
+  klass = defined?(ActiveSupport::Reloader) ? ActiveSupport::Reloader : ActionDispatch::Callbacks
+  klass.to_prepare do
+    require_relative 'lib/redmine_sudo/user_patch'
+  end
+else
+  # see https://www.redmine.org/issues/36245#note-11 and following for changes with zeitwerk autoloading
+  Rails.application.config.after_initialize do
+    require_relative 'lib/redmine_sudo/user_patch'
+  end
 end

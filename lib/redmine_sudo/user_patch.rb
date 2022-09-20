@@ -1,8 +1,6 @@
-if Rails::VERSION::MAJOR < 6
-  require_dependency 'project' # see: http://www.redmine.org/issues/11035
-  require_dependency 'principal'
-  require_dependency 'user'
-end
+require_dependency 'project' # see: http://www.redmine.org/issues/11035
+require_dependency 'principal'
+require_dependency 'user'
 
 class User
   before_save :update_sudoer

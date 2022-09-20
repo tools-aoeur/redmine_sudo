@@ -1,4 +1,4 @@
-name: Tests master
+name: Tests 5.0.2
 
 env:
   PLUGIN_NAME: redmine_sudo

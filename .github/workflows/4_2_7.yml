@@ -115,12 +115,6 @@ jobs:
           bundle exec rake db:create db:migrate
           bundle exec rails test:scm:setup:subversion
 
-      - name: Checkout dependencies - Base Deface plugin
-        uses: actions/checkout@v2
-        with:
-          repository: tools-aoeur/redmine_base_deface
-          path: redmine/plugins/redmine_base_deface
-
       - name: Checkout plugin
         uses: actions/checkout@v2
         with:

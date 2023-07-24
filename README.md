@@ -27,9 +27,6 @@ See: http://www.redmine.org/projects/redmine/wiki/Plugins
 
 **plugin requirement:**
 
-* this plugin requires the plugin [redmine_base_deface](https://github.com/jbbarth/redmine_base_deface) to be installed!
-* make sure you got it installed or install it before installing `redmine_sudo` plugin
-
 Then you basically just have to:
 
 * drop the plugin in the "plugins/" directory
@@ -46,7 +43,7 @@ Test status
 
 |Plugin branch| Redmine Version   | Test Status      |
 |-------------|-------------------|------------------|
-|master       | 4.2.7             | [![4.2.7][1]][5] |  
+|master       | 4.2.7             | [![4.2.7][1]][5] |
 |master       | 4.1.7             | [![4.1.7][2]][5] |
 |master       | 5.0.2             | [![5.0.2][4]][5]|
 

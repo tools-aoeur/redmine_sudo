@@ -9,10 +9,9 @@ Redmine::Plugin.register :redmine_sudo do
   author 'Jean-Baptiste BARTH (orig)'
   author_url 'mailto:jeanbaptiste.barth@gmail.com'
   url 'https://github.com/tools-aoeur/redmine_sudo'
-  version '1.0.0'
-  requires_redmine version_or_higher: '4.0.0'
-  requires_redmine_plugin :redmine_base_rspec, version_or_higher: '0.0.3' if Rails.env.test?
-  requires_redmine_plugin :redmine_base_deface, version_or_higher: '0.0.1'
+  version '2.0.0'
+  requires_redmine version_or_higher: '5.0.0'
+  requires_redmine_plugin :redmine_base_rspec, version_or_higher: '2.0.0' if Rails.env.test?
   settings default: {
     'become_admin' => '[sudo -v]',
     'become_user' => '[sudo -k]',

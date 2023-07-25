@@ -1,4 +1,4 @@
-Rails.autoloaders.main.ignore("#{__dir__}/lib") if Rails::VERSION::MAJOR >= 6
+Rails.autoloaders.main.ignore("#{__dir__}/lib")
 
 require_relative 'lib/redmine_sudo/hooks'
 
@@ -9,10 +9,10 @@ Redmine::Plugin.register :redmine_sudo do
   author 'Jean-Baptiste BARTH (orig)'
   author_url 'mailto:jeanbaptiste.barth@gmail.com'
   url 'https://github.com/tools-aoeur/redmine_sudo'
-  version '1.0.0'
-  requires_redmine version_or_higher: '4.0.0'
-  requires_redmine_plugin :redmine_base_rspec, version_or_higher: '0.0.3' if Rails.env.test?
-  requires_redmine_plugin :redmine_base_deface, version_or_higher: '0.0.1'
+  version '2.0.0'
+  requires_redmine version_or_higher: '5.0.0'
+  requires_redmine_plugin :redmine_base_rspec, version_or_higher: '2.0.0' if Rails.env.test?
+
   settings default: {
     'become_admin' => '[sudo -v]',
     'become_user' => '[sudo -k]',
@@ -25,15 +25,7 @@ Redmine::Plugin.register :redmine_sudo do
            partial: 'settings/redmine_sudo_settings'
 end
 
-# Patches to existing classes/modules
-if Rails::VERSION::MAJOR < 6
-  klass = defined?(ActiveSupport::Reloader) ? ActiveSupport::Reloader : ActionDispatch::Callbacks
-  klass.to_prepare do
-    require_relative 'lib/redmine_sudo/user_patch'
-  end
-else
-  # see https://www.redmine.org/issues/36245#note-11 and following for changes with zeitwerk autoloading
-  Rails.application.config.after_initialize do
-    require_relative 'lib/redmine_sudo/user_patch'
-  end
+# see https://www.redmine.org/issues/36245#note-11 and following for changes with zeitwerk autoloading
+Rails.application.config.after_initialize do
+  require_relative 'lib/redmine_sudo/user_patch'
 end

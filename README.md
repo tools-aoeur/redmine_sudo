@@ -36,7 +36,36 @@ Then you basically just have to:
 Compatibility
 -------------
 
-This plugin only works with Redmine > 4.0.0. If you have any issue, don't forget to mention the Redmine version you're using.
+This plugin only works with Redmine >= 5.0.0. If you have any issue, don't forget to mention the Redmine version you're using.
+The redmine version needs to be patched with 2 view hooks:
+
+```diff
+diff --git a/app/views/layouts/base.html.erb b/app/views/layouts/base.html.erb
+index a307e6d2819..7e26aec7826 100644
+--- a/app/views/layouts/base.html.erb
++++ b/app/views/layouts/base.html.erb
+@@ -64,6 +64,7 @@
+         <%= render_menu :account_menu -%>
+     </div>
+     <%= content_tag('div', "#{l(:label_logged_as)} #{link_to_user(User.current, :format => :username)}".html_safe, :id => 'loggedas') if User.current.logged? %>
++    <%= call_hook :view_layouts_base_top_menu %>
+     <%= render_menu :top_menu if User.current.logged? || !Setting.login_required? -%>
+ </div>
+ 
+diff --git a/app/views/users/index.html.erb b/app/views/users/index.html.erb
+index 82387d8ee2b..792568007a1 100644
+--- a/app/views/users/index.html.erb
++++ b/app/views/users/index.html.erb
+@@ -57,7 +57,7 @@
+   <td class="firstname"><%= user.firstname %></td>
+   <td class="lastname"><%= user.lastname %></td>
+   <td class="email"><%= mail_to(user.mail) %></td>
+-  <td class="tick"><%= checked_image user.admin? %></td>
++  <td class="tick"><%= checked_image user.admin? %><%= call_hook(:view_users_admin_extra, { user: user }) %></td>
+   <% if Setting.twofa_required? || Setting.twofa_optional? %>
+     <td class="twofa tick"><%= checked_image user.twofa_active? %></td>
+   <% end %>
+```
 
 Test status
 ------------

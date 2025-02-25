@@ -1,16 +1,13 @@
-name: Tests 5.0.2
+name: Tests 5.1.6
 
 env:
   PLUGIN_NAME: redmine_sudo
-  REDMINE_VERSION: 5.0.2
+  REDMINE_VERSION: 5.1.6
   RAILS_ENV: test
 
 on:
   push:
-    branches:
-      - master
   pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   test:
@@ -19,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        ruby: ['3.1']
+        ruby: ['3.2']
         db: ['postgres']
       fail-fast: false
 
@@ -40,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout Redmine
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: redmine/redmine
           ref: ${{ env.REDMINE_VERSION }}
@@ -51,7 +48,7 @@ jobs:
 
       - name: Install package dependencies
         run: >
-          sudo apt-get install --yes --quiet
+          sudo apt-get update && sudo apt-get install --yes --quiet
           build-essential
           cmake
           libicu-dev
@@ -75,22 +72,28 @@ jobs:
           sudo mv policy.xml /etc/ImageMagick-6/policy.xml
 
       - name: Setup Ruby
-        uses: actions/setup-ruby@v1
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
       - name: Setup Bundler
         run: gem install bundler -v '~> 1.0'
 
       - name: Checkout dependencies - Base RSpec plugin
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          repository: tools-aoeur/redmine_base_rspec
+          repository: jbbarth/redmine_base_rspec
           path: redmine/plugins/redmine_base_rspec
 
       - name: Prepare Redmine source
         working-directory: redmine
         run: |
+          # Add missing fixtures to API tests
+          sed -i='' 's/^  fixtures :users/&, :groups_users/' test/integration/api_test/users_test.rb # TODO: remove next line when fixed in Redmine core
+          sed -i='' 's/^  fixtures(/&:user_preferences,/' test/integration/api_test/issues_test.rb # TODO: remove next line when fixed in Redmine core
+          # Fix routes broken by Redmine core plugins tests
+          rm -f test/integration/routing/plugins_test.rb # Fix routing tests # TODO Remove this line when https://www.redmine.org/issues/38707 is fixed
           sed -i '/rubocop/d' Gemfile
           rm -f .rubocop*
           cp plugins/redmine_base_rspec/spec/support/database-${{ matrix.db }}.yml config/database.yml
@@ -116,7 +119,7 @@ jobs:
           bundle exec rails test:scm:setup:subversion
 
       - name: Checkout plugin
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: redmine/plugins/${{ env.PLUGIN_NAME }}
 

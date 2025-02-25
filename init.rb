@@ -9,9 +9,9 @@ Redmine::Plugin.register :redmine_sudo do
   author 'Jean-Baptiste BARTH (orig)'
   author_url 'mailto:jeanbaptiste.barth@gmail.com'
   url 'https://github.com/tools-aoeur/redmine_sudo'
-  version '2.0.0'
-  requires_redmine version_or_higher: '5.0.0'
-  requires_redmine_plugin :redmine_base_rspec, version_or_higher: '2.0.0' if Rails.env.test?
+  version '3.0.0'
+  requires_redmine version_or_higher: '5.1.0'
+  requires_redmine_plugin :redmine_base_rspec, version_or_higher: '3.0.0' if Rails.env.test?
 
   settings default: {
     'become_admin' => '[sudo -v]',
@@ -28,4 +28,5 @@ end
 # see https://www.redmine.org/issues/36245#note-11 and following for changes with zeitwerk autoloading
 Rails.application.config.after_initialize do
   require_relative 'lib/redmine_sudo/user_patch'
+  require_relative 'lib/redmine_sudo/user_query_patch'
 end

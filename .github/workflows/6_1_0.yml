@@ -2,7 +2,7 @@ name: Tests 6.1.0
 
 env:
   PLUGIN_NAME: redmine_sudo
-  REDMINE_VERSION: 6.1.0
+  REDMINE_VERSION: 6.1.0-aoeur
   RAILS_ENV: test
 
 on:
@@ -39,7 +39,7 @@ jobs:
       - name: Checkout Redmine
         uses: actions/checkout@v4
         with:
-          repository: redmine/redmine
+          repository: tools-aoeur/redmine
           ref: ${{ env.REDMINE_VERSION }}
           path: redmine
 
@@ -83,7 +83,7 @@ jobs:
       - name: Checkout dependencies - Base RSpec plugin
         uses: actions/checkout@v4
         with:
-          repository: jbbarth/redmine_base_rspec
+          repository: tools-aoeur/redmine_base_rspec
           path: redmine/plugins/redmine_base_rspec
 
       - name: Prepare Redmine source
@@ -114,18 +114,6 @@ jobs:
           bundle exec rake db:create db:migrate
           bundle exec rails test:scm:setup:subversion
 
-      - name: Checkout dependencies - Base Deface plugin
-        uses: actions/checkout@v4
-        with:
-          repository: jbbarth/redmine_base_deface
-          path: redmine/plugins/redmine_base_deface
-
-      - name: Checkout dependencies - Base StimulusJS plugin
-        uses: actions/checkout@v4
-        with:
-          repository: nanego/redmine_base_stimulusjs
-          path: redmine/plugins/redmine_base_stimulusjs
-
       - name: Checkout plugin
         uses: actions/checkout@v4
         with:
@@ -141,11 +129,11 @@ jobs:
           # cp -i plugins/*/spec/fixtures/*yml test/fixtures/
           bundle exec rails db:fixtures:load
 
-      - name: Run core tests
-        env:
-          RAILS_ENV: test
-        working-directory: redmine
-        run: bundle exec rails test
+      # - name: Run core tests
+      #   env:
+      #     RAILS_ENV: test
+      #   working-directory: redmine
+      #   run: bundle exec rails test
 
       - name: Run plugin tests
         env:

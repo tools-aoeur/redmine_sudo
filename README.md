@@ -1,5 +1,5 @@
 Redmine Sudo plugin
-===================
+-------------------
 
 This plugin allows administrators of a redmine instance to change their rights temporarily and navigate as if they were normal users. Then they can take back their administrator rights only when needed. It's the same idea as "sudo" in Linux/Unix operating systems, you don't need to be root all the time.
 
@@ -26,38 +26,40 @@ Installation
 See: http://www.redmine.org/projects/redmine/wiki/Plugins
 
 **plugin requirement:**
-* this plugin requires the plugin [redmine_base_deface](https://github.com/jbbarth/redmine_base_deface) to be installed!
-* make sure you got it installed or install it before installing `redmine_sudo` plugin
 
-Then you basically just have to:
+You basically just have to:
 
 * drop the plugin in the "plugins/" directory
 * run `rake redmine:plugins:migrate`
 * restart your redmine instance
 
+Differences from original plugin code
+-------------------------------------
+
+* stripped away unneeded code. Minimalistic approach.
+* no backwards compatibility targeted. We believe it's safer to keep the code lean and mean for the targeted redmine version
+* removed dependency on deface. The deface plugin adds complexity and makes things difficult to manage with many plugins in action
+
 Compatibility
 -------------
 
-This plugin only works with Redmine > 2.1.0. If you have any issue, don't forget to mention the Redmine version you're using.
+This plugin only works with Redmine >= 6.1.0. If you have any issue, don't forget to mention the Redmine version you're using.
 
 Test status
 ------------
 
 |Plugin branch| Redmine Version | Test Status       |
 |-------------|-----------------|-------------------|
-|master       | 6.1.0           | [![6.1.0][1]][5]  |
-|master       | 6.0.7           | [![6.0.7][2]][5]  |
-|master       | master          | [![master][4]][5] |
+|redmine-6.1  | 6.1.0           | [![6.1.0][1]][2]  |
 
-[1]: https://github.com/jbbarth/redmine_sudo/actions/workflows/6_1_0.yml/badge.svg
-[2]: https://github.com/jbbarth/redmine_sudo/actions/workflows/6_0_7.yml/badge.svg
-[3]: https://github.com/jbbarth/redmine_sudo/actions/workflows/master.yml/badge.svg
-[5]: https://github.com/jbbarth/redmine_sudo/actions
+[1]: https://github.com/tools-aoeur/redmine_sudo/actions/workflows/6_1_0.yml/badge.svg
+[2]: https://github.com/tools-aoeur/redmine_sudo/actions
 
 Contribute
 ----------
 
-If you like this plugin, it's a good idea to contribute :
+If you like this plugin, it's a good idea to contribute:
+
 * by giving feed back on what is cool, what should be improved
 * by reporting bugs : you can open issues directly on github
 * by forking it and sending pull request if you have a patch or a feature you want to implement

@@ -16,5 +16,5 @@ end
 
 class UsersController
   include RedmineSudo::UsersControllerPatch
-  append_before_action :update_sudoer, :only => [:update]
+  append_before_action :update_sudoer, only: [:update]
 end

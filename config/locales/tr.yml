@@ -2,3 +2,4 @@ tr:
   become_admin_label: 'Kullanıcı->Yönetici'
   become_user_label: 'Yönetici->Kullanıcı'
   css_admin_label: CSS kuralları Yönetici
+  field_sudoer: Sudoer

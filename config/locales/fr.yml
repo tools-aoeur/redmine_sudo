@@ -2,3 +2,4 @@ fr:
   become_admin_label: 'Utilisateur->Administrateur'
   become_user_label: 'Administrateur->Utilisateur'
   css_admin_label: Règles CSS de l'administrateur
+  field_sudoer: Sudoer

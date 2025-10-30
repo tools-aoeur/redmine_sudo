@@ -21,7 +21,7 @@ Redmine::Plugin.register :redmine_sudo do
               html: { method: 'get',
                       id: "sudo_id" },
               caption: proc {
-                User.current.admin? ? Setting.plugin_redmine_sudo["become_user"] : Setting.plugin_redmine_sudo["become_admin"]
+                Setting.plugin_redmine_sudo[User.current.admin? ? "become_user" : "become_admin"]
               },
               before: :my_account,
               class: "sudo",

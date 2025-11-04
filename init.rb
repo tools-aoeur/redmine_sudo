@@ -14,7 +14,6 @@ Redmine::Plugin.register :redmine_sudo do
   url 'https://github.com/tools-aoeur/redmine_sudo'
   version '6.1.0'
   requires_redmine version_or_higher: '6.1.0'
-  requires_redmine_plugin :redmine_base_rspec, version_or_higher: '3.0.0' if Rails.env.test?
 
   Redmine::MenuManager.map :account_menu do |menu|
     menu.push :sudo, :sudo_toggle_path,

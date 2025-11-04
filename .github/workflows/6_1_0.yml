@@ -80,19 +80,12 @@ jobs:
       - name: Setup Bundler
         run: gem install bundler -v '~> 1.0'
 
-      - name: Checkout dependencies - Base RSpec plugin
-        uses: actions/checkout@v4
-        with:
-          repository: tools-aoeur/redmine_base_rspec
-          path: redmine/plugins/redmine_base_rspec
-
       - name: Prepare Redmine source
         working-directory: redmine
         run: |
-          rm -f test/integration/routing/plugins_test.rb # Fix routing tests # TODO Remove this line when https://www.redmine.org/issues/38707 is fixed
           sed -i '/rubocop/d' Gemfile
           rm -f .rubocop*
-          cp plugins/redmine_base_rspec/spec/support/database-${{ matrix.db }}.yml config/database.yml
+          cp spec/support/database-${{ matrix.db }}.yml config/database.yml
 
       - name: Install Ruby dependencies
         working-directory: redmine
@@ -133,7 +126,9 @@ jobs:
       #   env:
       #     RAILS_ENV: test
       #   working-directory: redmine
-      #   run: bundle exec rails test
+      #   run: |
+      #     rm -f test/integration/routing/plugins_test.rb # Fix routing tests # TODO Remove this line when https://www.redmine.org/issues/38707 is fixed
+      #     bundle exec rails test
 
       - name: Run plugin tests
         env:

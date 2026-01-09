@@ -1,7 +1,12 @@
 <style>
   #top-menu #sudo_id { margin: 0 8px 0 -8px; }
-<% if User.current.admin? && Setting.plugin_redmine_sudo["additional_css"].present? %>
-  <%= Setting.plugin_redmine_sudo["additional_css"].html_safe %>
-<% end %>
+  <% if User.current.admin? %>
+  #top-menu { background-color: #BA0C04; }
+  #header { background-color: #dd0037 !important; background-image: none; }
+  #main-menu li a { background-color: #BA0C04; }
+  #main-menu li a.new-object { background-color: #BA0C04; }
+  #main-menu li a:hover { background-color: #8D0A02; }
+  @media all and (max-width: 899px) { #header { background-color: #dd0037 !important; } }
+  <% end %>
   body.controller-users table.list td.tick.sudoer { opacity:0.4; }
 </style>

@@ -18,24 +18,18 @@ Redmine::Plugin.register :redmine_sudo do
   Redmine::MenuManager.map :account_menu do |menu|
     menu.push :sudo, :sudo_toggle_path,
               html: { method: 'get',
-                      id: "sudo_id" },
+                      id: 'sudo_id' },
               caption: proc {
-                Setting.plugin_redmine_sudo[User.current.admin? ? "become_user" : "become_admin"]
+                Setting.plugin_redmine_sudo[User.current.admin? ? 'become_user' : 'become_admin']
               },
               before: :my_account,
-              class: "sudo",
+              class: 'sudo',
               if: proc { User.current.sudoer? }
   end
 
   settings default: {
-             'become_admin' => '[sudo -v]',
-    'become_user' => '[sudo -k]',
-    'additional_css' => "#top-menu { background-color:#BA0C04; }\n
-                        #header { background-color:#dd0037; }\n
-                        #main-menu li a { background-color:#BA0C04; }\n
-                        #main-menu li a.new-object { background-color:#BA0C04; }\n
-                        #main-menu li a:hover { background-color:#8D0A02; }\n
-                        @media all and (max-width: 899px) { #header{ background-color: #dd0037 !important; }"
+             'become_admin' => 'Become Admin',
+             'become_user' => 'Become User'
            },
            partial: 'settings/redmine_sudo_settings'
 end

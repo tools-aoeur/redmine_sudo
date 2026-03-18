@@ -2,4 +2,4 @@ en:
   become_admin_label: 'User->Admin'
   become_user_label: 'Admin->User'
   css_admin_label: CSS rules Admin
-  field_sudoer: Sudoer
+  field_sudoer: Active Admin

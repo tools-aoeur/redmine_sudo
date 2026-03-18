@@ -24,7 +24,7 @@ Redmine::Plugin.register :redmine_sudo do
               },
               before: :my_account,
               class: 'sudo',
-              if: proc { User.current.sudoer? }
+              if: proc { User.current.permanent_admin? }
   end
 
   settings default: {

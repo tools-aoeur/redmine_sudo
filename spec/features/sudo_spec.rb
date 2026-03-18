@@ -16,7 +16,7 @@ describe "Sudo", type: :request do
   context "toggle link" do
     it "should route to sudo#toggle" do
       assert_routing(
-        { method: :get, path: "/sudo/toggle" },
+        { method: :post, path: "/sudo/toggle" },
         { controller: "sudo", action: "toggle" }
       )
     end
@@ -29,17 +29,17 @@ describe "Sudo", type: :request do
       assert user.reload.admin?
       assert user.reload.sudoer?
 
-      get "/sudo/toggle?back_url=/my/page"
+      post "/sudo/toggle", params: { back_url: "/my/page" }
       expect(response).to redirect_to("/my/page")
       assert !user.reload.admin?
 
-      get "/sudo/toggle?back_url=/my/page"
+      post "/sudo/toggle", params: { back_url: "/my/page" }
       expect(response).to redirect_to("/my/page")
       assert user.reload.admin?
     end
 
     it "should not allow a redirection to a different domain name" do
-      get "/sudo/toggle?back_url=.my-custom-domain-name.com"
+      post "/sudo/toggle", params: { back_url: ".my-custom-domain-name.com" }
       expect(response).to_not redirect_to("my-custom-domain-name.com")
     end
   end

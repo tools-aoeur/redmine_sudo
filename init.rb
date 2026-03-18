@@ -17,7 +17,7 @@ Redmine::Plugin.register :redmine_sudo do
 
   Redmine::MenuManager.map :account_menu do |menu|
     menu.push :sudo, :sudo_toggle_path,
-              html: { method: 'get',
+              html: { method: 'post',
                       id: 'sudo_id' },
               caption: proc {
                 Setting.plugin_redmine_sudo[User.current.admin? ? 'become_user' : 'become_admin']

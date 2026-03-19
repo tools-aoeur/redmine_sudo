@@ -1,0 +1,68 @@
+<h2><%= l(:label_security_audit_log) %></h2>
+
+<%= form_tag(security_audit_logs_path, method: :get, id: 'security-audit-filter') do %>
+  <fieldset class="collapsible collapsed" id="filters">
+    <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
+    <div style="display:none;">
+      <table>
+        <tr>
+          <td class="field"><label for="q"><%= l(:label_search) %>:</label></td>
+          <td><%= text_field_tag 'q', @query, size: 30 %></td>
+          <td class="field"><label for="action_filter"><%= l(:field_action) %>:</label></td>
+          <td>
+            <%= select_tag 'action_filter',
+                  options_for_select([['', '']] + @available_actions.map { |a| [a.humanize, a] }, @action_filter) %>
+          </td>
+        </tr>
+        <tr>
+          <td class="field"><label for="from"><%= l(:label_date_from) %>:</label></td>
+          <td><%= date_field_tag 'from', @from %></td>
+          <td class="field"><label for="to"><%= l(:label_date_to) %>:</label></td>
+          <td><%= date_field_tag 'to', @to %></td>
+        </tr>
+        <tr>
+          <td colspan="4">
+            <%= submit_tag l(:button_apply), name: nil, class: 'small' %>
+            <%= link_to l(:button_clear), security_audit_logs_path, class: 'icon icon-reload' %>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </fieldset>
+<% end %>
+
+<p class="subtitle"><%= l(:label_total) %>: <%= @log_count %></p>
+
+<% if @logs.any? %>
+  <div class="autoscroll">
+    <table class="list">
+      <thead>
+        <tr>
+          <%= sort_header_tag('created_at', caption: l(:field_created_on), default_order: 'desc') %>
+          <%= sort_header_tag('user_login', caption: l(:field_user)) %>
+          <th><%= l(:field_ip) %></th>
+          <%= sort_header_tag('action', caption: l(:field_action)) %>
+          <%= sort_header_tag('entity_type', caption: l(:field_entity_type)) %>
+          <%= sort_header_tag('entity_name', caption: l(:field_entity_name)) %>
+          <th><%= l(:field_details) %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @logs.each do |log| %>
+          <tr class="<%= cycle('odd', 'even') %>">
+            <td class="created_on"><%= format_time(log.created_at) %></td>
+            <td class="user"><%= link_to_user_by_id_or_login(log) %></td>
+            <td class="ip"><%= h log.user_remote_ip %></td>
+            <td class="action"><span class="audit-action"><%= h log.action.humanize %></span></td>
+            <td class="entity_type"><%= h log.entity_type %></td>
+            <td class="entity_name"><%= link_to_entity_or_text(log) %></td>
+            <td class="details"><%= h log.details %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <span class="pagination"><%= pagination_links_full @log_pages, @log_count %></span>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

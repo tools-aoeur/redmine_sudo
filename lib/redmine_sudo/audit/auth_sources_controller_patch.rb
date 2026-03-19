@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 # Patches AuthSourcesController to audit authentication source changes (LDAP, etc.).
-require_dependency 'auth_sources_controller'
-
 module RedmineSudo
   module Audit
     module AuthSourcesControllerPatch

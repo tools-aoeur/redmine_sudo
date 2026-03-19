@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 # Patches MembersController to audit membership changes.
-require_dependency 'members_controller'
-
 module RedmineSudo
   module Audit
     module MembersControllerPatch

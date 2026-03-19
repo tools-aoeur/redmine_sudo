@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 # Patches GroupsController to audit group CRUD and membership changes.
-require_dependency 'groups_controller'
-
 module RedmineSudo
   module Audit
     module GroupsControllerPatch
@@ -59,7 +57,7 @@ module RedmineSudo
         return unless @group.present?
 
         user_ids = params[:user_ids] || params[:user_id]
-        users = User.where(id: Array(user_ids))
+        users = ::User.where(id: Array(user_ids))
         users.each do |user|
           SecurityAuditLog.log(
             action: 'group_user_added',
@@ -73,7 +71,7 @@ module RedmineSudo
       def audit_group_remove_user
         return unless @group.present?
 
-        user = User.find_by(id: params[:user_id])
+        user = ::User.find_by(id: params[:user_id])
         SecurityAuditLog.log(
           action: 'group_user_removed',
           entity: @group,

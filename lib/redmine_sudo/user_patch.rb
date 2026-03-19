@@ -1,6 +1,4 @@
-require_dependency 'project' # see: http://www.redmine.org/issues/11035
-require_dependency 'principal'
-require_dependency 'user'
+# frozen_string_literal: true
 
 module RedmineSudo::UserPatch
   # Override admin? to reflect the toggled sudoer state.
@@ -26,12 +24,7 @@ module RedmineSudo::UserPatch
 
   # Toggles the sudoer (active admin) flag without triggering callbacks.
   def update_sudoer!(value)
-    User.where(id: self.id).update_all(sudoer: value)
-    User.where(id: self.id).update_all(updated_on: Time.now)
+    ::User.where(id: self.id).update_all(sudoer: value)
+    ::User.where(id: self.id).update_all(updated_on: Time.now)
   end
-end
-
-class User < Principal
-  prepend RedmineSudo::UserPatch
-  before_save :sync_sudoer
 end

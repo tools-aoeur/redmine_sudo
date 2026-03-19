@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 # Patches SettingsController to audit system setting changes.
-require_dependency 'settings_controller'
-
 module RedmineSudo
   module Audit
     module SettingsControllerPatch

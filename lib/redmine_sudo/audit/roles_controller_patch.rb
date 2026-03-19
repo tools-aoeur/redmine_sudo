@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 # Patches RolesController to audit role CRUD and permission changes.
-require_dependency 'roles_controller'
-
 module RedmineSudo
   module Audit
     module RolesControllerPatch

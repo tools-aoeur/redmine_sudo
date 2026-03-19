@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 # Patches UsersController to audit user CRUD, locking, and admin changes.
-require_dependency 'users_controller'
-
 module RedmineSudo
   module Audit
     module UsersControllerPatch

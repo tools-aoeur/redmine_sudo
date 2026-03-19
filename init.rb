@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
 require 'redmine'
-require_relative 'lib/redmine_sudo/hooks'
 
-Rails.autoloaders.main.ignore("#{__dir__}/lib")
-
-# Plugin generic informations
+# Plugin registration
 Redmine::Plugin.register :redmine_sudo do
   name 'Redmine Sudo plugin'
-  description 'This plugin gives sudo-like powers to Redmine administrators'
+  description 'Allow Redmine administrators to drop their admin privileges to work as a normal user and provide an audit log of privileged actions'
   author 'Jean-Baptiste BARTH (orig)'
   author_url 'mailto:jeanbaptiste.barth@gmail.com'
   url 'https://github.com/tools-aoeur/redmine_sudo'
@@ -24,7 +21,7 @@ Redmine::Plugin.register :redmine_sudo do
               },
               before: :my_account,
               class: 'sudo',
-              if: proc { User.current.permanent_admin? }
+              if: proc { User.current.read_attribute(:admin) }
   end
 
   Redmine::MenuManager.map :admin_menu do |menu|
@@ -41,4 +38,44 @@ Redmine::Plugin.register :redmine_sudo do
              'become_user' => 'Become User'
            },
            partial: 'settings/redmine_sudo_settings'
+end
+
+# Apply patches.
+
+# View hooks (triggers Zeitwerk autoload + render_on registration)
+_ = RedmineSudo::Hooks
+
+# User model
+unless User.ancestors.include?(RedmineSudo::UserPatch)
+  User.prepend RedmineSudo::UserPatch
+  User.before_save :sync_sudoer
+end
+
+# UserQuery
+unless UserQuery.ancestors.include?(RedmineSudo::UserQueryPatch)
+  UserQuery.prepend RedmineSudo::UserQueryPatch
+end
+unless UserQuery.available_columns.any? { |c| c.name == :sudoer }
+  UserQuery.available_columns << QueryColumn.new(:sudoer, sortable: "#{User.table_name}.sudoer")
+end
+
+# UsersController (sudoer sync on update)
+unless UsersController.ancestors.include?(RedmineSudo::UsersControllerPatch)
+  UsersController.include RedmineSudo::UsersControllerPatch
+  UsersController.append_before_action :update_sudoer, only: [:update]
+end
+
+# Security audit trail
+unless SudoController.ancestors.include?(RedmineSudo::Audit::SudoControllerPatch)
+  SudoController.prepend RedmineSudo::Audit::SudoControllerPatch
+end
+
+{ UsersController       => RedmineSudo::Audit::UsersControllerPatch,
+  ProjectsController    => RedmineSudo::Audit::ProjectsControllerPatch,
+  MembersController     => RedmineSudo::Audit::MembersControllerPatch,
+  RolesController       => RedmineSudo::Audit::RolesControllerPatch,
+  GroupsController      => RedmineSudo::Audit::GroupsControllerPatch,
+  SettingsController    => RedmineSudo::Audit::SettingsControllerPatch,
+  AuthSourcesController => RedmineSudo::Audit::AuthSourcesControllerPatch }.each do |klass, mod|
+  klass.include mod unless klass.ancestors.include?(mod)
 end

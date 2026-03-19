@@ -3,3 +3,10 @@ nl:
   become_user_label: 'Beheerder->Gebruiker'
   css_admin_label: CSS-regels voor beheerder
   field_sudoer: Actieve Beheerder
+  label_security_audit_log: Beveiligingsauditlogboek
+  field_action: Actie
+  field_entity_type: Entiteitstype
+  field_entity_name: Entiteitsnaam
+  field_details: Details
+  field_ip: IP-adres
+  label_total: Totaal

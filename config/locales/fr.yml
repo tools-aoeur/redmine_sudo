@@ -3,3 +3,10 @@ fr:
   become_user_label: 'Administrateur->Utilisateur'
   css_admin_label: Règles CSS de l'administrateur
   field_sudoer: Administrateur Actif
+  label_security_audit_log: Journal d'audit de sécurité
+  field_action: Action
+  field_entity_type: Type d'entité
+  field_entity_name: Nom de l'entité
+  field_details: Détails
+  field_ip: Adresse IP
+  label_total: Total

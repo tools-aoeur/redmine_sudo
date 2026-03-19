@@ -27,6 +27,15 @@ Redmine::Plugin.register :redmine_sudo do
               if: proc { User.current.permanent_admin? }
   end
 
+  Redmine::MenuManager.map :admin_menu do |menu|
+    menu.push :security_audit_log, :security_audit_logs_path,
+              caption: :label_security_audit_log,
+              icon: 'redmine_sudo',
+              plugin: :redmine_sudo,
+              html: { class: 'icon icon-redmine_sudo' },
+              if: proc { User.current.admin? }
+  end
+
   settings default: {
              'become_admin' => 'Become Admin',
              'become_user' => 'Become User'

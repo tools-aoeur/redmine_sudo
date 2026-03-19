@@ -3,3 +3,10 @@ tr:
   become_user_label: 'Yönetici->Kullanıcı'
   css_admin_label: CSS kuralları Yönetici
   field_sudoer: Aktif Yönetici
+  label_security_audit_log: Güvenlik Denetim Günlüğü
+  field_action: Eylem
+  field_entity_type: Varlık Türü
+  field_entity_name: Varlık Adı
+  field_details: Ayrıntılar
+  field_ip: IP Adresi
+  label_total: Toplam

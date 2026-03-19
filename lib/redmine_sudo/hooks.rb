@@ -9,6 +9,7 @@ module RedmineSudo
       require_relative 'user_patch'
       require_relative 'user_query_patch'
       require_relative 'users_controller_patch'
+      require_relative 'audit_setup'
     end
   end
 end

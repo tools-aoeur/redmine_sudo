@@ -1,4 +1,4 @@
-require_dependency 'users_controller'
+# frozen_string_literal: true
 
 module RedmineSudo
   module UsersControllerPatch
@@ -12,9 +12,4 @@ module RedmineSudo
     end
 
   end
-end
-
-class UsersController
-  include RedmineSudo::UsersControllerPatch
-  append_before_action :update_sudoer, only: [:update]
 end

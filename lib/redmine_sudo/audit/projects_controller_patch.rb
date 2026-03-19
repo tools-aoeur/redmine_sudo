@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 # Patches ProjectsController to audit project creation, updates, and archival.
-require_dependency 'projects_controller'
-
 module RedmineSudo
   module Audit
     module ProjectsControllerPatch

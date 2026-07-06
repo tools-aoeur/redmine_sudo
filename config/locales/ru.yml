@@ -2,7 +2,7 @@ ru:
   become_admin_label: 'Пользователь->Администратор'
   become_user_label: 'Администратор->Пользователь'
   css_admin_label: CSS Администратор
-  field_sudoer: Активный Администратор
+  field_sudoer: Право администратора
   label_security_audit_log: Журнал аудита безопасности
   field_action: Действие
   field_entity_type: Тип объекта

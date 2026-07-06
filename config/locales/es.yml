@@ -2,7 +2,7 @@ es:
   become_admin_label: 'Usuario->Administrador'
   become_user_label: 'Administrador->Usuario'
   css_admin_label: Reglas CSS Administrador
-  field_sudoer: Administrador Activo
+  field_sudoer: Sudoer
   label_security_audit_log: Registro de auditoría de seguridad
   field_action: Acción
   field_entity_type: Tipo de entidad

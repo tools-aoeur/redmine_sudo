@@ -21,7 +21,7 @@ Redmine::Plugin.register :redmine_sudo do
               },
               before: :my_account,
               class: 'sudo',
-              if: proc { User.current.read_attribute(:admin) }
+              if: proc { User.current.sudoer? }
   end
 
   Redmine::MenuManager.map :admin_menu do |menu|
@@ -63,6 +63,11 @@ end
 unless UsersController.ancestors.include?(RedmineSudo::UsersControllerPatch)
   UsersController.include RedmineSudo::UsersControllerPatch
   UsersController.append_before_action :update_sudoer, only: [:update]
+end
+
+# Auto-drop active admin when core's SudoMode session expires
+unless ApplicationController.included_modules.include?(RedmineSudo::ApplicationControllerPatch)
+  ApplicationController.include RedmineSudo::ApplicationControllerPatch
 end
 
 # Security audit trail

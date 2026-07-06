@@ -21,7 +21,7 @@ module RedmineSudo
           action: 'user_created',
           entity: @user,
           entity_name: @user.login,
-          details: "Status: #{@user.status}, Admin: #{@user.permanent_admin?}",
+          details: "Status: #{@user.status}, Admin: #{@user.sudoer?}",
           remote_ip: request.remote_ip
         )
       end

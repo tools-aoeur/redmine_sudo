@@ -13,7 +13,7 @@ describe UsersController, type: :controller do
     User.current = nil
     @request.session = ActionController::TestSession.new
     @request.session[:user_id] = 1 # permissions admin
-    User.find(1).update_columns(sudoer: true) # ensure admin? returns true
+    User.find(1).update_columns(admin: true) # ensure admin? (require_admin) passes
   end
 
   describe "POST update" do

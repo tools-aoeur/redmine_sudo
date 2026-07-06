@@ -2,7 +2,7 @@ tr:
   become_admin_label: 'Kullanıcı->Yönetici'
   become_user_label: 'Yönetici->Kullanıcı'
   css_admin_label: CSS kuralları Yönetici
-  field_sudoer: Aktif Yönetici
+  field_sudoer: Yönetici Yetkisi
   label_security_audit_log: Güvenlik Denetim Günlüğü
   field_action: Eylem
   field_entity_type: Varlık Türü

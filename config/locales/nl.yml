@@ -2,7 +2,7 @@ nl:
   become_admin_label: 'Gebruiker->Beheerder'
   become_user_label: 'Beheerder->Gebruiker'
   css_admin_label: CSS-regels voor beheerder
-  field_sudoer: Actieve Beheerder
+  field_sudoer: Sudoer
   label_security_audit_log: Beveiligingsauditlogboek
   field_action: Actie
   field_entity_type: Entiteitstype

@@ -1,65 +1,111 @@
-Redmine Sudo plugin
--------------------
+# Redmine Sudo plugin
 
-This plugin allows administrators of a redmine instance to change their rights temporarily and navigate as if they were normal users. Then they can take back their administrator rights only when needed. It's the same idea as "sudo" in Linux/Unix operating systems, you don't need to be root all the time.
+Like `sudo` on Unix, this plugin lets Redmine administrators run as a normal user
+most of the time and reclaim their admin rights only when needed. An admin can
+temporarily drop privileges, browse the instance as a regular user, and toggle
+back to admin in one click.
 
-The plugin also allows to define some CSS that will only be included when you're administrator, so that you can always obviously know your status. See below the 3rd screenshot, the proposed styles change the header background colors to red.
+To make the current status obvious, the plugin can inject CSS that only applies
+while you are acting as admin (for example, turning the header red).
 
-Screenshot
-----------
+## Screenshots
 
-Here's a screenshot when you're a standard user:
+Acting as a standard user:
 
-![redmine_sudo screenshot](http://jbbarth.com/screenshots/redmine_sudo_1.png)
+![Standard user](http://jbbarth.com/screenshots/redmine_sudo_1.png)
 
-If you click on it you become administrator:
+Click the link to become administrator:
 
-![redmine_sudo screenshot](http://jbbarth.com/screenshots/redmine_sudo_2.png)
+![Administrator](http://jbbarth.com/screenshots/redmine_sudo_2.png)
 
-The admin section lets you define the title of the links and some CSS styles that will be applied only when admin:
+The admin section lets you set the link titles and the admin-only CSS:
 
-![redmine_sudo screenshot](http://jbbarth.com/screenshots/redmine_sudo_3.png)
+![Settings](http://jbbarth.com/screenshots/redmine_sudo_3.png)
 
-Installation
-------------
+## How it works
 
-See: http://www.redmine.org/projects/redmine/wiki/Plugins
+The plugin separates the *permission* to become admin from the *active* state:
 
-**plugin requirement:**
+- The native `admin` column keeps its native Redmine meaning: "currently acting
+  as admin". Every Redmine permission check (`allowed_to?`, `safe_attributes`,
+  API output, ...) already uses `admin?`/`admin`, so toggling it controls admin
+  privileges without any override.
+- An added `sudoer` column represents the permanent permission to become admin.
+  It's granted automatically whenever `admin` is granted (creation or grant via
+  the Users admin screen), and only cleared by an explicit revoke in that same
+  screen — dropping/regaining active admin via the toggle never touches it.
 
-You basically just have to:
+### Auto-drop via Redmine core's own SudoMode
 
-* drop the plugin in the "plugins/" directory
-* run `rake redmine:plugins:migrate`
-* restart your redmine instance
+Rather than adding a separate timer or setting, the toggle is wired directly
+into Redmine's built-in `Redmine::SudoMode` password-reconfirmation feature
+(the same one behind `sudo_mode` / `sudo_mode_timeout` in `configuration.yml`):
 
-Differences from original plugin code
--------------------------------------
+- **Become Admin** is gated by core's own `require_sudo_mode` check — if the
+  user doesn't currently have a valid core sudo session (e.g. it's been more
+  than `sudo_mode_timeout` minutes since they last logged in or reconfirmed
+  their password), Redmine's own password form is shown; no custom UI.
+- **Become User** (manual click, or the automatic drop below) flips `admin`
+  off and forces the core sudo session to be considered expired
+  (`session[:sudo_timestamp] = 0`), so the next sudo-gated action — including a
+  future Become Admin — requires a fresh password.
+- **Automatic drop**: a global `before_action` checks, on every request,
+  whether the core sudo session has lapsed while `admin` is active; if so it
+  drops `admin` the same way and logs a `sudo_expired` entry in the Security
+  Audit Log. This check is read-only (it doesn't itself extend the session),
+  so ordinary browsing doesn't keep admin alive indefinitely — only actual
+  core `require_sudo_mode`-gated actions (Users, Settings, Roles, ...) do that,
+  via their own native sliding behavior. API/token requests are exempt.
 
-* stripped away unneeded code. Minimalistic approach.
-* no backwards compatibility targeted. We believe it's safer to keep the code lean and mean for the targeted redmine version
-* removed dependency on deface. The deface plugin adds complexity and makes things difficult to manage with many plugins in action
+This means the feature only has an effect when `sudo_mode: true` is set in
+`configuration.yml`; if core sudo mode is disabled, admin never auto-drops.
 
-Compatibility
--------------
+## Users list "Sudoer" column
 
-This plugin only works with Redmine >= 6.1.0. If you have any issue, don't forget to mention the Redmine version you're using.
+The Administration > Users list shows core's default `admin` column
+(plain Yes/No) as usual, plus a `sudoer` column shown right next to it by
+default, so who currently has admin permission and who is merely eligible
+to become admin are both visible at a glance without customizing the
+query.
 
-Test status
-------------
+Filtering is unaffected: Redmine core's `admin` filter and this plugin's
+`sudoer` filter still operate on the raw boolean columns.
 
-|Plugin branch| Redmine Version | Test Status       |
-|-------------|-----------------|-------------------|
-|redmine-6.1  | 6.1.0           | [![6.1.0][1]][2]  |
+## Installation
+
+See the [Redmine plugin guide](http://www.redmine.org/projects/redmine/wiki/Plugins).
+In short:
+
+1. Drop the plugin into the `plugins/` directory.
+2. Run `rake redmine:plugins:migrate`.
+3. Restart your Redmine instance.
+
+## Compatibility
+
+Requires Redmine >= 6.1.0. When reporting an issue, always mention the Redmine
+version you are using.
+
+## Differences from the original plugin
+
+- Stripped away unneeded code — minimalistic approach.
+- No backwards compatibility targeted; the code stays lean and mean for the
+  targeted Redmine version.
+- Removed the `deface` dependency, which adds complexity and is hard to manage
+  alongside many plugins.
+
+## Test status
+
+| Plugin branch | Redmine Version | Test Status      |
+|---------------|-----------------|------------------|
+| redmine-6.1   | 6.1.0           | [![6.1.0][1]][2] |
 
 [1]: https://github.com/tools-aoeur/redmine_sudo/actions/workflows/6_1_0.yml/badge.svg
 [2]: https://github.com/tools-aoeur/redmine_sudo/actions
 
-Contribute
-----------
+## Contribute
 
-If you like this plugin, it's a good idea to contribute:
+Contributions are welcome:
 
-* by giving feed back on what is cool, what should be improved
-* by reporting bugs : you can open issues directly on github
-* by forking it and sending pull request if you have a patch or a feature you want to implement
+- Give feedback on what works well and what could be improved.
+- Report bugs by opening an issue on GitHub.
+- Fork the project and send a pull request for patches or features.

@@ -2,7 +2,7 @@ name: Tests 6.1.0
 
 env:
   PLUGIN_NAME: redmine_sudo
-  REDMINE_VERSION: 6.1.0-aoeur
+  REDMINE_VERSION: 6.1.2-aoeur
   RAILS_ENV: test
 
 on:
@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout Redmine
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: tools-aoeur/redmine
           ref: ${{ env.REDMINE_VERSION }}
@@ -108,7 +108,7 @@ jobs:
           bundle exec rails test:scm:setup:subversion
 
       - name: Checkout plugin
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: redmine/plugins/${{ env.PLUGIN_NAME }}
 

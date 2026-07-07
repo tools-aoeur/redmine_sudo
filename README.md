@@ -31,9 +31,15 @@ The plugin separates the *permission* to become admin from the *active* state:
   API output, ...) already uses `admin?`/`admin`, so toggling it controls admin
   privileges without any override.
 - An added `sudoer` column represents the permanent permission to become admin.
-  It's granted automatically whenever `admin` is granted (creation or grant via
-  the Users admin screen), and only cleared by an explicit revoke in that same
-  screen — dropping/regaining active admin via the toggle never touches it.
+
+Both columns are edited independently, as two separate checkboxes ("Administrator"
+and "Sudoer") on the Users admin form — checking or unchecking one never
+affects the other. Checking "Administrator" directly grants active admin
+rights, same as vanilla Redmine. Checking "Sudoer" only grants the
+*permission* to become admin later via the Become Admin action below; it does
+not activate `admin` itself, same as adding a user to `/etc/sudoers` doesn't
+start them a root shell.
+
 
 ### Auto-drop via Redmine core's own SudoMode
 

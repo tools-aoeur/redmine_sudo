@@ -18,10 +18,10 @@ unless User.respond_to?(:generate)
 end
 
 describe 'User' do
-  it 'should set sudoer=true when creating an admin user' do
+  it 'admin and sudoer are independent columns when creating an admin user' do
     user = User.generate(admin: true)
-    expect(user.sudoer?).to eq true
     expect(user.read_attribute(:admin)).to eq true
+    expect(user.sudoer?).to eq false
   end
 
   it 'should set sudoer=false when creating a non-admin user' do
@@ -30,32 +30,48 @@ describe 'User' do
     expect(user.read_attribute(:admin)).to eq false
   end
 
+  it 'setting admin via save does not grant or affect sudoer' do
+    user = User.generate(admin: false)
+    expect(user.sudoer?).to eq false
+
+    user.update_attribute(:admin, true)
+    expect(user.reload.sudoer?).to eq false
+
+    user.update_attribute(:admin, false)
+    expect(user.reload.sudoer?).to eq false
+  end
+
+  it 'setting sudoer via save does not grant or affect admin' do
+    user = User.generate(admin: false)
+    expect(user.read_attribute(:admin)).to eq false
+
+    user.update_attribute(:sudoer, true)
+    expect(user.reload.read_attribute(:admin)).to eq false
+
+    user.update_attribute(:sudoer, false)
+    expect(user.reload.read_attribute(:admin)).to eq false
+  end
+
   it 'should keep sudoer unchanged when toggling admin via update_admin!' do
-    user = User.generate(admin: true)
+    user = User.generate(admin: false)
+    user.update_attribute(:sudoer, true)
+    user.update_admin!(true) # simulates "Become Admin"
     user.update_admin!(false)
     user.reload
     expect(user.sudoer?).to eq true
     expect(user.read_attribute(:admin)).to eq false
   end
 
-  it 'admin? should return the raw admin column (toggled state)' do
-    user = User.generate(admin: true)
-    expect(user.admin?).to eq true
-
-    user.update_admin!(false)
-    user.reload
+  it 'admin? reflects the raw admin column, toggled via update_admin!' do
+    user = User.generate(admin: false)
     expect(user.admin?).to eq false
 
     user.update_admin!(true)
     user.reload
     expect(user.admin?).to eq true
-  end
 
-  it 'sudoer? should stay true after admin is toggled off' do
-    user = User.generate(admin: true)
     user.update_admin!(false)
     user.reload
-    expect(user.sudoer?).to eq true
     expect(user.admin?).to eq false
   end
 
@@ -64,23 +80,9 @@ describe 'User' do
     user.update_admin!(false)
     user.reload
     expect(user.admin?).to eq false
-    # unrelated update should not re-sync admin
+    # unrelated update should not re-activate admin
     user.update_attribute(:firstname, 'John')
     expect(user.reload.admin?).to eq false
-  end
-
-  it 'should grant sudoer when admin is granted via save, but not clear it on revoke' do
-    user = User.generate(admin: false)
-    expect(user.sudoer?).to eq false
-
-    # grant admin -> sudoer should be granted alongside it
-    user.update_attribute(:admin, true)
-    expect(user.reload.sudoer?).to eq true
-
-    # revoke admin -> sudoer is deliberately left alone by this callback
-    # (explicit revocation is handled by UsersControllerPatch instead)
-    user.update_attribute(:admin, false)
-    expect(user.reload.sudoer?).to eq true
   end
 
   it 'should #update_admin! sets a new updated_on date' do

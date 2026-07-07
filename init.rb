@@ -48,7 +48,7 @@ _ = RedmineSudo::Hooks
 # User model
 unless User.ancestors.include?(RedmineSudo::UserPatch)
   User.prepend RedmineSudo::UserPatch
-  User.before_save :sync_sudoer
+  User.safe_attributes 'sudoer', if: proc { |_user, current_user| current_user.admin? }
 end
 
 # UserQuery
@@ -57,12 +57,6 @@ unless UserQuery.ancestors.include?(RedmineSudo::UserQueryPatch)
 end
 unless UserQuery.available_columns.any? { |c| c.name == :sudoer }
   UserQuery.available_columns << QueryColumn.new(:sudoer, sortable: "#{User.table_name}.sudoer")
-end
-
-# UsersController (sudoer sync on update)
-unless UsersController.ancestors.include?(RedmineSudo::UsersControllerPatch)
-  UsersController.include RedmineSudo::UsersControllerPatch
-  UsersController.append_before_action :update_sudoer, only: [:update]
 end
 
 # Auto-drop active admin when core's SudoMode session expires

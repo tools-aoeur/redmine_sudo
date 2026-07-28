@@ -59,9 +59,20 @@ into Redmine's built-in `Redmine::SudoMode` password-reconfirmation feature
   whether the core sudo session has lapsed while `admin` is active; if so it
   drops `admin` the same way and logs a `sudo_expired` entry in the Security
   Audit Log. This check is read-only (it doesn't itself extend the session),
-  so ordinary browsing doesn't keep admin alive indefinitely — only actual
-  core `require_sudo_mode`-gated actions (Users, Settings, Roles, ...) do that,
-  via their own native sliding behavior. API/token requests are exempt.
+  so ordinary browsing doesn't keep admin alive indefinitely — only genuinely
+  admin-gated actions do that, via their own sliding behavior.
+- **Sliding window on admin actions**: core only wires its own sliding
+  behavior (a call to `Redmine::SudoMode.active?`) into the small set of
+  controllers it wraps in `require_sudo_mode` (Users, Settings, Roles,
+  Groups, ...). Left as-is, that means working continuously in an
+  "auxiliary" admin screen that core only gates with `require_admin`
+  (Trackers, Issue statuses, Enumerations, Custom fields, Workflows, ...)
+  would never refresh the session and would eventually auto-drop admin mid
+  task. This plugin patches `require_admin` itself to also touch
+  `Redmine::SudoMode.active?` once the admin check passes, so any confirmed
+  admin action slides the same window — without ever demanding a password
+  for actions that didn't require one before. API/token requests are exempt
+  throughout.
 
 This means the feature only has an effect when `sudo_mode: true` is set in
 `configuration.yml`; if core sudo mode is disabled, admin never auto-drops.

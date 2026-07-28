@@ -59,9 +59,8 @@ unless UserQuery.available_columns.any? { |c| c.name == :sudoer }
   UserQuery.available_columns << QueryColumn.new(:sudoer, sortable: "#{User.table_name}.sudoer")
 end
 
-# Auto-drop active admin when core's SudoMode session expires
-unless ApplicationController.included_modules.include?(RedmineSudo::ApplicationControllerPatch)
-  ApplicationController.include RedmineSudo::ApplicationControllerPatch
+unless ApplicationController.ancestors.include?(RedmineSudo::ApplicationControllerPatch)
+  ApplicationController.prepend RedmineSudo::ApplicationControllerPatch
 end
 
 # Security audit trail

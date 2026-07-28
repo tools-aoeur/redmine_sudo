@@ -106,6 +106,26 @@ describe "Sudo", type: :request do
       expect(user.reload.read_attribute(:admin)).to eq true
     end
 
+    it "extends the core sudo session on require_admin-gated auxiliary admin screens" do
+      user = User.find_by_login("admin")
+      user.update_columns(admin: true, sudoer: true)
+      log_user("admin", "admin") # login itself sets session[:sudo_timestamp]
+      timestamp_after_login = session[:sudo_timestamp]
+      expect(timestamp_after_login).not_to be_nil
+
+      travel 5.minutes
+      get "/enumerations/new" # require_admin-gated, but not require_sudo_mode-gated
+
+      expect(session[:sudo_timestamp]).to be > timestamp_after_login
+      expect(user.reload.read_attribute(:admin)).to eq true
+
+      # ... and that slid session keeps the admin from auto-dropping later,
+      # even though it's now more than sudo_mode_timeout past the login.
+      travel 12.minutes
+      get "/my/page"
+      expect(user.reload.read_attribute(:admin)).to eq true
+    end
+
     it "auto-drops admin and logs sudo_expired once the core sudo session is invalid" do
       user = User.find_by_login("admin")
       user.update_columns(admin: true, sudoer: true)

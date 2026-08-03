@@ -177,6 +177,31 @@ describe "Sudo", type: :request do
       expect(response).to redirect_to("/my/page")
       expect(user.reload.read_attribute(:admin)).to eq true
     end
+
+    it "returns to the page the user came from after the password reconfirmation" do
+      # Regression test: the referer captured on the *first* POST is the page
+      # the user actually clicked "Become Admin" from. It has to be turned into
+      # a back_url before core renders its password form, because core only
+      # round-trips the params it sees at that point as hidden fields. Setting
+      # it after `require_sudo_mode` lost it, and the resubmit (whose referer is
+      # /sudo/toggle itself) then silently fell back to the /my/page default.
+      user = User.find_by_login("admin")
+      user.update_columns(admin: false, sudoer: true)
+      log_user("admin", "admin") # login itself grants a fresh sudo window
+      travel 20.minutes # let that window pass
+
+      post "/sudo/toggle", headers: { "HTTP_REFERER" => "http://www.example.com/projects" }
+      expect(response).to have_http_status(:success) # renders the password form
+      expect(response.body).to include('name="back_url"')
+      expect(response.body).to include('value="http://www.example.com/projects"')
+
+      post "/sudo/toggle",
+        params: { sudo_password: "admin", back_url: "http://www.example.com/projects" },
+        headers: { "HTTP_REFERER" => "http://www.example.com/sudo/toggle" }
+
+      expect(response).to redirect_to("/projects")
+      expect(user.reload.read_attribute(:admin)).to eq true
+    end
   end
 end
 

@@ -21,7 +21,7 @@ Redmine::Plugin.register :redmine_sudo do
               },
               before: :my_account,
               class: 'sudo',
-              if: proc { User.current.sudoer? }
+              if: proc { User.current.can_become_admin? }
   end
 
   Redmine::MenuManager.map :admin_menu do |menu|
@@ -49,6 +49,11 @@ _ = RedmineSudo::Hooks
 unless User.ancestors.include?(RedmineSudo::UserPatch)
   User.prepend RedmineSudo::UserPatch
   User.safe_attributes 'sudoer', if: proc { |_user, current_user| current_user.admin? }
+end
+
+# Mailer: "all administrators" broadcasts must also reach sudoers
+unless Mailer.singleton_class.ancestors.include?(RedmineSudo::MailerPatch)
+  Mailer.singleton_class.prepend RedmineSudo::MailerPatch
 end
 
 # UserQuery

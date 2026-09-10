@@ -21,7 +21,8 @@ module RedmineSudo
           action: 'user_created',
           entity: @user,
           entity_name: @user.login,
-          details: "Status: #{@user.status}, Admin: #{@user.sudoer?}",
+          details: "Status: #{@user.status}, Admin: #{@user.read_attribute(:admin)}, " \
+                   "Sudoer: #{@user.sudoer?}",
           remote_ip: request.remote_ip
         )
       end
@@ -56,7 +57,7 @@ module RedmineSudo
 
         if changes.key?('sudoer')
           from, to = changes['sudoer']
-          detail_parts << "Active Admin: #{from} -> #{to}"
+          detail_parts << "Sudoer: #{from} -> #{to}"
         end
 
         # Log remaining changes generically

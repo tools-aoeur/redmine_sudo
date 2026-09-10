@@ -3,13 +3,12 @@ require 'spec_helper'
 # Regression test for the interaction between redmine_sudo and Redmine core
 # workflow field permissions.
 #
-# `admin` (native Redmine column) reflects whether the user is currently acting
-# as admin; `sudoer` is the separate permanent permission to become admin.
-# Core's Issue#roles_for_workflow uses `admin?` (kept as a vendored one-line
-# core patch, functionally equivalent to the raw `admin` attribute under these
-# semantics) so that an admin who has dropped privileges is treated as a
-# normal user for read-only/required field rules. See
-# app/models/issue.rb#roles_for_workflow.
+# `admin` (native Redmine column) means "permanently an administrator";
+# `sudoer` is the permission to elevate to admin for the lifetime of one
+# browser session.
+# Core's Issue#roles_for_workflow uses `admin?`, which this plugin overrides to
+# account for the session elevation, so a sudoer who has not elevated is
+# treated as a normal user for read-only/required field rules.
 describe 'Issue workflow field permissions with redmine_sudo', type: :model do
   fixtures :users, :roles, :projects, :trackers, :issue_statuses,
            :enumerations, :members, :member_roles
@@ -28,7 +27,7 @@ describe 'Issue workflow field permissions with redmine_sudo', type: :model do
       tracker_id: tracker.id, old_status_id: status.id,
       role_id: role.id, field_name: 'due_date', rule: 'readonly'
     )
-    admin.update_columns(admin: true, sudoer: true)
+    admin.update_columns(admin: false, sudoer: true)
   end
 
   def issue
@@ -36,17 +35,21 @@ describe 'Issue workflow field permissions with redmine_sudo', type: :model do
               author: admin, subject: 'Test')
   end
 
-  it 'enforces role-based workflow field permissions when the admin drops privileges' do
-    admin.update_admin!(false) # acting as a normal user
-    admin.reload
+  it 'enforces role-based workflow field permissions for a sudoer who has not elevated' do
     expect(admin.admin?).to eq false
 
     expect(issue.read_only_attribute_names(admin)).to include('due_date')
   end
 
-  it 'ignores role-based workflow field permissions while acting as admin' do
-    admin.update_admin!(true) # acting as admin
-    admin.reload
+  it 'ignores role-based workflow field permissions while elevated in the session' do
+    admin.sudo_session_admin = true
+    expect(admin.admin?).to eq true
+
+    expect(issue.read_only_attribute_names(admin)).not_to include('due_date')
+  end
+
+  it 'ignores role-based workflow field permissions for the admin column' do
+    admin.update_columns(admin: true, sudoer: false)
     expect(admin.admin?).to eq true
 
     expect(issue.read_only_attribute_names(admin)).not_to include('due_date')

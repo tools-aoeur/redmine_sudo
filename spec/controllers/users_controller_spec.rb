@@ -75,4 +75,38 @@ describe UsersController, type: :controller do
     end
   end
 
+  # `admin` is the permanent administrator flag; letting a session-elevated
+  # sudoer grant it would permanently escape the session-scoped model.
+  describe "admin flag guard" do
+    before do
+      User.find(1).update_columns(admin: false, sudoer: true)
+      @request.session[:sudo_admin_user_id] = 1
+      @request.session[:sudo_timestamp] = Time.now.to_i
+    end
+
+    it "ignores the admin attribute submitted by an elevated sudoer" do
+      user_7.update_columns(admin: false, sudoer: false)
+
+      patch :update, :params => { :id => 7, :user => { admin: '1', mail: "test7@example.net" } }
+
+      user_7.reload
+      expect(user_7.read_attribute(:admin)).to eq false
+      expect(user_7.mail).to eq "test7@example.net" # the rest of the form still applies
+    end
+
+    it "ignores the admin attribute an elevated sudoer submits for their own account" do
+      patch :update, :params => { :id => 1, :user => { admin: '1' } }
+
+      expect(User.find(1).read_attribute(:admin)).to eq false
+    end
+
+    it "still lets an elevated sudoer manage the sudoer flag" do
+      user_7.update_columns(admin: false, sudoer: false)
+
+      patch :update, :params => { :id => 7, :user => { sudoer: '1', mail: "test7@example.net" } }
+
+      expect(user_7.reload.sudoer?).to eq true
+    end
+  end
+
 end

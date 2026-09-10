@@ -80,12 +80,18 @@ jobs:
       - name: Setup Bundler
         run: gem install bundler -v '~> 1.0'
 
+      - name: Checkout plugin
+        uses: actions/checkout@v6
+        with:
+          path: redmine/plugins/${{ env.PLUGIN_NAME }}
+
       - name: Prepare Redmine source
         working-directory: redmine
         run: |
           sed -i '/rubocop/d' Gemfile
           rm -f .rubocop*
           cp spec/support/database-${{ matrix.db }}.yml config/database.yml
+          cp plugins/${{ env.PLUGIN_NAME }}/.github/config/Gemfile.local Gemfile.local
 
       - name: Install Ruby dependencies
         working-directory: redmine
@@ -106,11 +112,6 @@ jobs:
         run: |
           bundle exec rake db:create db:migrate
           bundle exec rails test:scm:setup:subversion
-
-      - name: Checkout plugin
-        uses: actions/checkout@v6
-        with:
-          path: redmine/plugins/${{ env.PLUGIN_NAME }}
 
       - name: Install plugins dependencies and run plugins migrations
         env:

@@ -1,0 +1,4 @@
+# ActiveSupport 7.2 passes the +quirks_mode+ option that json 3.0 rejects.
+# Redmine carries a compat shim, but CI resolves gems against a released
+# tarball, so stay on json 2.x here until that shim ships.
+gem 'json', '~> 2.10'

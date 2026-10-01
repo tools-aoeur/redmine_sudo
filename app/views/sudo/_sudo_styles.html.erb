@@ -8,5 +8,10 @@
   #main-menu li a:hover { background-color: #8D0A02; }
   @media all and (max-width: 899px) { #header { background-color: #dd0037 !important; } }
   <% end %>
-  body.controller-users table.list td.tick.sudoer { opacity:0.4; }
+  <% unless User.current.read_attribute(:admin) %>
+  /* Only a user who already has the admin column set may grant it (see
+     RedmineSudo::UserPatch#safe_attribute_names); make the silently-ignored
+     checkbox look inert instead of merely doing nothing. */
+  body.controller-users #user_admin { pointer-events: none; opacity: 0.4; }
+  <% end %>
 </style>

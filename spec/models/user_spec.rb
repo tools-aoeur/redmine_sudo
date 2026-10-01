@@ -114,6 +114,28 @@ describe 'User' do
     end
   end
 
+  describe '#safe_attribute_names' do
+    let(:target) { User.generate(admin: false) }
+
+    it 'lets an admin grant admin to somebody else' do
+      expect(target.safe_attribute_names(User.generate(admin: true))).to include('admin')
+    end
+
+    it 'refuses to let an admin change their own admin flag' do
+      admin = User.generate(admin: true)
+      expect(admin.safe_attribute_names(admin)).not_to include('admin')
+    end
+
+    it 'refuses to let an elevated sudoer grant admin to anybody' do
+      sudoer = User.generate(admin: false)
+      sudoer.update_attribute(:sudoer, true)
+      sudoer.sudo_session_admin = true
+
+      expect(target.safe_attribute_names(sudoer)).not_to include('admin')
+      expect(sudoer.safe_attribute_names(sudoer)).not_to include('admin')
+    end
+  end
+
   describe '#must_activate_twofa?' do
     before { Setting.twofa = '3' } # required for administrators
     after { Setting.twofa = '0' }

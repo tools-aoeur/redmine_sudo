@@ -31,5 +31,19 @@ module RedmineSudo::UserPatch
 
     super || (Setting.twofa_required_for_administrators? && sudoer?)
   end
+
+  # Only a user who already has the `admin` column set may grant it, and never
+  # to themselves. Without this, a sudoer who elevated could tick
+  # "Administrator" on their own account and permanently escape the
+  # session-scoped model.
+  def safe_attribute_names(user = nil)
+    names = super
+    return names unless names.include?('admin')
+
+    acting_user = user || User.current
+    return names if acting_user.read_attribute(:admin) && acting_user != self
+
+    names - ['admin']
+  end
 end
 

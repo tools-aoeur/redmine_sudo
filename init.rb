@@ -21,7 +21,7 @@ Redmine::Plugin.register :redmine_sudo do
               },
               before: :my_account,
               class: 'sudo',
-              if: proc { User.current.sudoer? }
+              if: proc { User.current.can_become_admin? }
   end
 
   Redmine::MenuManager.map :admin_menu do |menu|

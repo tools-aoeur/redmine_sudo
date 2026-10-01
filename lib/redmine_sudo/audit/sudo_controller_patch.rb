@@ -5,9 +5,11 @@ module RedmineSudo
   module Audit
     module SudoControllerPatch
       def toggle
-        was_admin = ::User.current.admin?
+        # Elevation is session state, so compare the session -- reloading the
+        # user would only ever report the (unchanged) `admin` column.
+        was_admin = sudo_admin_session_active?
         super
-        now_admin = ::User.current.reload.admin?
+        now_admin = sudo_admin_session_active?
         if was_admin != now_admin
           action = now_admin ? 'sudo_activated' : 'sudo_deactivated'
           SecurityAuditLog.log(

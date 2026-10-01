@@ -1,15 +1,36 @@
 # frozen_string_literal: true
 
-# Manages Redmine core's own SudoMode session lifecycle for the active admin
-# state: drops it once the session expires, and slides the session forward
-# on any confirmed admin action so genuine ongoing work doesn't expire mid
-# task.
+# Elevated admin rights live in the browser session and nowhere else. Nothing
+# in here ever writes the `admin` column, so one session can neither elevate
+# nor demote another, and any request that carries no session -- REST API,
+# OAuth, atom key, rake task, background job -- always runs with the user's
+# plain, unelevated rights.
+#
+# This module also manages Redmine core's own SudoMode session lifecycle for
+# the elevated state: it drops the elevation once that session expires, and
+# slides the session forward on any confirmed admin action so genuine ongoing
+# work doesn't expire mid task.
 module RedmineSudo
   module ApplicationControllerPatch
     extend ActiveSupport::Concern
 
+    # Holds the id of the user who elevated in this session. Storing the id
+    # rather than a boolean means the key can never elevate a different user
+    # if the session outlives a re-login.
+    SUDO_ADMIN_SESSION_KEY = :sudo_admin_user_id
+
     prepended do
       before_action :enforce_sudo_grace_timeout
+    end
+
+    # Marks the request's own User instance as elevated. Only an interactive
+    # session login reaches this: `session[:user_id]` is set by the login form
+    # alone, and core's `find_current_user` ignores the session entirely for
+    # `.json`/`.xml` API requests.
+    def find_current_user
+      user = super
+      user.sudo_session_admin = true if user && sudo_admin_elevated?(user)
+      user
     end
 
     # Slides Redmine core's SudoMode session on any `require_admin`-gated
@@ -37,33 +58,68 @@ module RedmineSudo
 
     private
 
+    # True when this request may act on the elevation stored in this session.
+    #
+    # The first two checks together mirror exactly the branch of core's
+    # `find_current_user` that authenticates from the session, so an API key,
+    # atom key or OAuth token can never inherit an elevation even when the
+    # client also happens to send the session cookie (a browser calling
+    # `/users.json?key=...` does).
+    def sudo_admin_elevated?(user)
+      return false if api_request?
+      return false unless session[:user_id] == user.id
+      return false unless session[SUDO_ADMIN_SESSION_KEY] == user.id
+      # redmine_pretend impersonation: the impersonated user must never
+      # inherit the impersonator's elevation.
+      return false if session[:real_user_id].present?
+      # With core sudo mode disabled there is no window to expire against, so
+      # the elevation simply lasts for the whole session.
+      return true unless Redmine::SudoMode.enabled?
+
+      sudo_timestamp_valid?
+    end
+
+    def sudo_admin_session_active?
+      session[SUDO_ADMIN_SESSION_KEY].present?
+    end
+
+    def elevate_sudo_admin!
+      session[SUDO_ADMIN_SESSION_KEY] = User.current.id
+      User.current.sudo_session_admin = true
+    end
+
+    # Drops the elevation and forces the core sudo session to be considered
+    # expired, so the next sudo-gated action (including a future Become Admin)
+    # requires a fresh password re-entry.
+    def drop_sudo_admin!
+      session.delete(SUDO_ADMIN_SESSION_KEY)
+      session[:sudo_timestamp] = 0
+      User.current.sudo_session_admin = false
+    end
+
     # Read-only check — `sudo_timestamp_valid?` is a plain comparison with no
     # side effects, unlike `Redmine::SudoMode.active?`/`.active!` which mark
     # the session as "used" and cause it to be silently refreshed. This keeps
     # ordinary browsing from extending the window; only genuine admin actions
     # (via `require_admin` above, core's own `require_sudo_mode`, or our own
     # Become Admin) do that.
+    #
+    # `find_current_user` has already refused to elevate by the time this
+    # runs, so all that is left here is clearing the stale session key and
+    # recording the expiry.
     def enforce_sudo_grace_timeout
-      return if api_request?
-      return unless User.current.logged? && User.current.read_attribute(:admin)
+      return unless sudo_admin_session_active?
       return unless Redmine::SudoMode.enabled?
       return if sudo_timestamp_valid?
 
-      drop_active_admin!
+      user = User.current
+      drop_sudo_admin!
       SecurityAuditLog.log(
         action: 'sudo_expired',
-        entity: User.current,
-        entity_name: User.current.login,
+        entity: user,
+        entity_name: user.login,
         remote_ip: request.remote_ip
       )
-    end
-
-    # Drops the active admin flag and forces the core sudo session to be
-    # considered expired, so the next sudo-gated action (including our own
-    # Become Admin) requires a fresh password re-entry.
-    def drop_active_admin!
-      User.current.update_admin!(false)
-      session[:sudo_timestamp] = 0
     end
   end
 end

@@ -1,19 +1,21 @@
 class SudoController < ApplicationController
   def toggle
     require_login # should render a 403 if no user found
-    return render_403 unless User.current.sudoer?
+    # A user with the `admin` column set is permanently admin and has nothing
+    # to toggle; everyone else needs the sudoer permission.
+    return render_403 unless User.current.can_become_admin?
 
     # Must run *before* `require_sudo_mode`: core renders the password form with
     # the current params as hidden fields, which is the only way back_url
     # survives the password re-entry round trip.
     set_back_url_from_referer
 
-    if User.current.read_attribute(:admin)
-      drop_active_admin!
+    if sudo_admin_session_active?
+      drop_sudo_admin!
     else
       return unless require_sudo_mode # shows core's password reconfirmation form if needed
 
-      User.current.update_admin!(true)
+      elevate_sudo_admin!
     end
 
     redirect_back_or_default controller: "my", action: "page"

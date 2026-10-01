@@ -45,5 +45,11 @@ module RedmineSudo::UserPatch
 
     names - ['admin']
   end
+
+  # Core notifies `User.active.where(admin: true)` when someone gains or loses
+  # admin. Sudoers can reach admin too, so they have to be told as well.
+  def deliver_security_notification
+    RedmineSudo::AdminNotification.broadcast { super }
+  end
 end
 

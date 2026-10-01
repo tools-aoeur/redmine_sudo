@@ -51,6 +51,11 @@ unless User.ancestors.include?(RedmineSudo::UserPatch)
   User.safe_attributes 'sudoer', if: proc { |_user, current_user| current_user.admin? }
 end
 
+# Mailer: "all administrators" broadcasts must also reach sudoers
+unless Mailer.singleton_class.ancestors.include?(RedmineSudo::MailerPatch)
+  Mailer.singleton_class.prepend RedmineSudo::MailerPatch
+end
+
 # UserQuery
 unless UserQuery.ancestors.include?(RedmineSudo::UserQueryPatch)
   UserQuery.prepend RedmineSudo::UserQueryPatch

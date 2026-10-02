@@ -180,6 +180,44 @@ describe "Sudo", type: :request do
       get "/users.json", params: { key: user.api_key }
       expect(response).to have_http_status(:success)
     end
+
+    # Regression test for a production incident on the old database-backed
+    # implementation: a permanent-admin, non-sudoer service account (e.g.
+    # tool.syncator) issuing near-continuous .json/.xml ?key= API calls --
+    # exempt there via api_request? -- interleaved with a single HTML-format
+    # request authenticated by that same ?key= param (e.g. IssuesController
+    # #index/AttachmentsController#download). That request was NOT
+    # api_request?, so it was the first one in hours to actually reach
+    # enforce_sudo_grace_timeout, which found no valid sudo_timestamp (this
+    # account never logged in interactively) and flipped the globally shared
+    # `admin` column off. Here, admin must stay privileged regardless: this
+    # branch's enforce_sudo_grace_timeout only touches session-scoped
+    # elevation (`session[:sudo_admin_user_id]`), which a permanent admin /
+    # non-sudoer account never sets in the first place.
+    it "never drops a service account's admin column, no matter how long it runs or what formats it hits" do
+      user = User.find_by_login("admin")
+      user.update_columns(admin: true, sudoer: false)
+      key = user.api_key
+
+      get "/issues.json", params: { key: key }
+      expect(response).to have_http_status(:success)
+
+      travel 1.hour # far past sudo_mode_timeout
+
+      get "/issues.json", params: { key: key }
+      expect(response).to have_http_status(:success)
+
+      # The exact shape of the request that triggered the incident: HTML
+      # format (no .json/.xml suffix), authenticated via the ?key= param
+      # (IssuesController#index accepts API auth, unlike MyController#page).
+      get "/issues", params: { key: key }
+      expect(response).to have_http_status(:success)
+
+      user.reload
+      expect(user.read_attribute(:admin)).to eq true
+      expect(session[:sudo_admin_user_id]).to be_nil
+      expect(SecurityAuditLog.where(action: "sudo_expired", user_id: user.id).count).to eq 0
+    end
   end
 
   context "core sudo mode integration" do
